@@ -10,7 +10,7 @@ volumes:
   cadvisor_data:
 
 services:
-  # cAdvisor for container metrics
+  # cAdvisor для метрик контейнера
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
     container_name: cadvisor
@@ -29,7 +29,7 @@ services:
       - monitoring
     privileged: true
 
-  # Node Exporter for system metrics
+  # Node Exporter для системных метрик
   node-exporter:
     image: prom/node-exporter:latest
     container_name: node-exporter
