@@ -4,7 +4,31 @@ networks:
   monitoring:
     name: monitoring
 
+volumes:
+  prometheus_data:
+  grafana_data:
+  cadvisor_data:
+
 services:
+  # cAdvisor for container metrics
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    restart: unless-stopped
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker:/var/lib/docker:ro
+      - /dev/disk:/dev/disk:ro
+    devices:
+      - /dev/kmsg:/dev/kmsg
+    ports:
+      - "8080:8080"
+    networks:
+      - monitoring
+    privileged: true
+
   # Node Exporter for system metrics
   node-exporter:
     image: prom/node-exporter:latest
@@ -37,6 +61,7 @@ services:
     networks:
       - monitoring
     depends_on:
+      - cadvisor
       - node-exporter
 
   loki:
@@ -60,6 +85,9 @@ services:
       - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_PANELS_DISABLE_SANITIZE_HTML=true
+    volumes:
+      - grafana_data:/var/lib/grafana
     entrypoint:
       - sh
       - -euc
@@ -93,6 +121,3 @@ services:
       - monitoring
     depends_on:
       - prometheus
-
-volumes:
-  prometheus_data:
